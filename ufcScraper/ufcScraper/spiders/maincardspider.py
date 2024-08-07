@@ -24,8 +24,15 @@ class MaincardspiderSpider(scrapy.Spider):
         res = []
         for fight in main_card_fights:
             #div.c-listing-fight__country-text::text
-            f1_flag = fight.css("div.c-listing-fight__country--red img").attrib["src"]
-            f2_flag = fight.css("div.c-listing-fight__country--blue img").attrib["src"]
+            country_text = fight.css("div.c-listing-fight__country-text")
+            if country_text[0].css("::text").get():
+                f1_flag = fight.css("div.c-listing-fight__country--red img").attrib["src"]
+            else:
+                f1_flag = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Unknown_flag.svg/2560px-Unknown_flag.svg.png"
+            if country_text[1].css("::text").get():
+                f2_flag = fight.css("div.c-listing-fight__country--blue img").attrib["src"]
+            else:
+                f2_flag = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Unknown_flag.svg/2560px-Unknown_flag.svg.png"
             ranks = fight.css("div.c-listing-fight__corner-rank")
             f1_rank = ranks[0].css("span::text").get()
             f2_rank = ranks[1].css("span::text").get()
@@ -78,15 +85,20 @@ class MaincardspiderSpider(scrapy.Spider):
         selector = Selector(text=response.text)
         img = selector.css("div.hero-profile__image-wrap img").attrib["src"]
         name = selector.css("h1.hero-profile__name::text").get()
-        age = selector.css("div.field--name-age::text").get()        
-        height = selector.css("div.c-bio__text")[-5].css("::text").get()
-        height = f"{int(float(height) // 12)}'{int(float(height) % 12)}"
+        age = selector.css("div.field--name-age::text").get()   
+        if len(selector.css("div.c-bio__text")) > 4:
+            height = selector.css("div.c-bio__text")[-5].css("::text").get()
+            height = f"{int(float(height) // 12)}'{int(float(height) % 12)}"
 
-        weight = selector.css("div.c-bio__text")[-4].css("::text").get()
-        weight = f"{float(weight):.1f}"
+            weight = selector.css("div.c-bio__text")[-4].css("::text").get()
+            weight = f"{float(weight):.1f}"
 
-        reach = selector.css("div.c-bio__text")[-2].css("::text").get()
-        reach = f'{float(reach):.1f}"'
+            reach = selector.css("div.c-bio__text")[-2].css("::text").get()
+            reach = f'{float(reach):.1f}"'
+        else:
+            height = "N/A"
+            weight = "N/A"
+            reach = "N/A"
 
         record_line = selector.css("p.hero-profile__division-body::text").get()
         record_line = record_line.split(" ")
